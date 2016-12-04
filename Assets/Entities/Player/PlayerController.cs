@@ -39,7 +39,7 @@ public class PlayerController : MonoBehaviour {
             InvokeRepeating("Fire", 0.00001f, firingRate);
         }
 
-        if (Input .GetKeyUp(KeyCode.Space))
+        if (Input.GetKeyUp(KeyCode.Space))
         {
             CancelInvoke("Fire");
         }
