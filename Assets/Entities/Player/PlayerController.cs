@@ -4,6 +4,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour {
 
     public GameObject laserPrefab;
+    public float health = 250f;
     public float speed = 5;
     public float padding = 1;
     public float laserSpeed;
@@ -50,8 +51,23 @@ public class PlayerController : MonoBehaviour {
 
     }
 
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        Projectile missile = col.gameObject.GetComponent<Projectile>();
+        if (missile)
+        {
+            health -= missile.GetDamage();
+            missile.Hit();
+            if (health <= 0)
+            {
+                Destroy(gameObject);
+            }
+        }
+    }
+
     void Fire()
     {
+        Vector3 offset = new Vector3(0, 1, 0);
         GameObject laser = Instantiate(laserPrefab, gameObject.GetComponent<Transform>().position, Quaternion.identity) as GameObject;
         laser.GetComponent<Rigidbody2D>().velocity = new Vector3(0, laserSpeed, 0);
     }

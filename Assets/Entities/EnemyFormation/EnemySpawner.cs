@@ -7,6 +7,7 @@ public class EnemySpawner : MonoBehaviour {
     public float width = 10f;
     public float height = 5f;
     public float speed = 30f;
+    public float spawnDelay = 0.5f;
 
     private bool movingRight = true;
     private float xmax;
@@ -14,6 +15,13 @@ public class EnemySpawner : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
+
+        SpawnUntilFull();
+
+    }
+
+    void SpawnUntilFull()
+    {
         float distanceToCamera = gameObject.GetComponent<Transform>().position.z - Camera.main.GetComponent<Transform>().position.z;
         Vector3 leftEdge = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, distanceToCamera));
         Vector3 rightEdge = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, distanceToCamera));
@@ -21,14 +29,17 @@ public class EnemySpawner : MonoBehaviour {
         xmax = rightEdge.x;
         xmin = leftEdge.x;
 
-        foreach (Transform child in transform)
+        Transform freePosition = NextFreePosition();
+        if (freePosition)
         {
-            GameObject enemy = Instantiate(enemyPrefab, child.GetComponent <Transform >().position , Quaternion.identity) as GameObject;
-            enemy.GetComponent<Transform>().parent = child;
-            
+            GameObject enemy = Instantiate(enemyPrefab, freePosition.GetComponent<Transform>().position, Quaternion.identity) as GameObject;
+            enemy.GetComponent<Transform>().parent = freePosition;
         }
-
-	}
+        if (NextFreePosition())
+        {
+            Invoke("SpawnUntilFull", spawnDelay);
+        }
+    }
 
     public void OnDrawGizmos()
     {
@@ -59,5 +70,55 @@ public class EnemySpawner : MonoBehaviour {
             movingRight = false;
         }
 
+        if (AllMembersAreDead())
+        {
+            Debug.Log("Empty Formation.");
+            SpawnUntilFull();
+        }
+
+    }
+
+    public void SpawnEnemies()
+    {
+        float distanceToCamera = gameObject.GetComponent<Transform>().position.z - Camera.main.GetComponent<Transform>().position.z;
+        Vector3 leftEdge = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, distanceToCamera));
+        Vector3 rightEdge = Camera.main.ViewportToWorldPoint(new Vector3(1, 0, distanceToCamera));
+
+        xmax = rightEdge.x;
+        xmin = leftEdge.x;
+
+        foreach (Transform child in transform)
+        {
+            GameObject enemy = Instantiate(enemyPrefab, child.GetComponent<Transform>().position, Quaternion.identity) as GameObject;
+            enemy.GetComponent<Transform>().parent = child;
+
+        }
+    }
+
+
+
+    Transform NextFreePosition()
+    {
+        foreach (Transform childPositionGameObject in transform)
+        {
+            if (childPositionGameObject.childCount == 0)
+            {
+                return childPositionGameObject;
+            }
+            
+        }
+        return null;
+    }
+
+    bool AllMembersAreDead()
+    {
+        foreach (Transform childPositionGameObject in transform)
+        {
+            if(childPositionGameObject .childCount > 0)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 }
